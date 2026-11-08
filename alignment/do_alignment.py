@@ -156,9 +156,44 @@ def contrastive_align(model, ann_path, device, window, output_json_path, finding
         anchor_half = batch['anchor_half']
 
         _, logits = model(anchor_caption, candidate_features)
-        _, max_indices = torch.max(logits, dim=1)
-        aligned_res = [time + pos_in_list.item()-window for pos_in_list, time in zip(max_indices, anchor_timestamp)]
-        modified_timelist = [(gameTime, caption_text, f"{anchor_half} - {aligned_result // 60:02}:{aligned_result % 60:02}") for gameTime, caption_text, aligned_result, anchor_half in zip(anchor_gameTime, anchor_caption_text, aligned_res, anchor_half)]
+
+        # Get the two highest similarity scores for each caption
+        top_values, top_indices = torch.topk(logits, k=2, dim=1)
+
+        # Calculate predicted timestamps using the highest-scoring candidate
+        max_indices = top_indices[:, 0]
+
+        aligned_res = [
+            time + pos_in_list.item() - window
+            for pos_in_list, time in zip(max_indices, anchor_timestamp)
+            ]
+
+        # Extract confidence information
+        top_scores = top_values[:, 0]
+        second_scores = top_values[:, 1]
+        score_margins = top_scores - second_scores
+
+        # Save prediction and confidence information together
+        modified_timelist = [
+            (
+                gameTime,
+                caption_text,
+                f"{half} - {aligned_result // 60:02}:{aligned_result % 60:02}",
+                top_score.item(),
+                second_score.item(),
+                margin.item()
+            )
+            for gameTime, caption_text, aligned_result, half, top_score, second_score, margin
+            in zip(
+                anchor_gameTime,
+                anchor_caption_text,
+                aligned_res,
+                anchor_half,
+                top_scores,
+                second_scores,
+                score_margins
+            )
+        ]
         print("Should modify",len(modified_timelist))
         all_results.extend(modified_timelist)
 
@@ -171,9 +206,12 @@ def contrastive_align(model, ann_path, device, window, output_json_path, finding
         annotation['contrastive_aligned_gameTime'] = ""
 
     for annotation in data['annotations']:
-        for gameTime, caption_text, aligned_gameTime in all_results:
+        for gameTime, caption_text, aligned_gameTime, top_score, second_score, margin in all_results:
             if annotation[finding_words] == gameTime and annotation['anonymized'] == caption_text:
                 annotation['contrastive_aligned_gameTime'] = aligned_gameTime
+                annotation['contrastive_top_score'] = top_score
+                annotation['contrastive_second_score'] = second_score
+                annotation['contrastive_score_margin'] = margin
 
                 if finding_words == "event_aligned_gameTime" and give_sec(annotation['event_aligned_gameTime']) and give_sec(annotation['contrastive_aligned_gameTime']) and give_sec(annotation['gameTime']):
                     contrastive_aligned_sec = give_sec(annotation['contrastive_aligned_gameTime'])
