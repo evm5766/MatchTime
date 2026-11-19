@@ -1,4 +1,22 @@
 # MatchTime: Towards Automatic Soccer Game Commentary Generation (EMNLP 2024 Oral)
+
+The following are instructions on how to get the student implementation of MatchTime running.
+   1. Copy this repo onto your desktop
+   2. Ensure that you meet the requirements to run the original MatchTime repository, as shown below
+      a) This means installing the proper Python, PyTorch, transformers, and pycocoevalcap versions as stated below, or this command can be run: python -m pip install numpy pandas matplotlib pycocoevalcap sentence-transformers
+   3. Create and activate a python environment for MatchTime as described below
+
+   '''
+   cd MatchTime
+   conda env create -f environment.yaml
+   conda activate MatchTime
+   '''
+   
+   4. Verify that the file directory matches what is presented below as part of original MatchTime
+   
+
+Below are the contents of the original README from the unedited MatchTime
+
 This repository contains the official PyTorch implementation of MatchTime: https://arxiv.org/abs/2406.18530/
 
 <div align="center">
