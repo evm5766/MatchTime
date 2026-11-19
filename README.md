@@ -7,9 +7,9 @@ The following are instructions on how to get the student implementation of Match
    3. Create and activate a python environment for MatchTime as described below
 
    '''
-   cd MatchTime
-   conda env create -f environment.yaml
-   conda activate MatchTime
+   cd MatchTime \n
+   conda env create -f environment.yaml \n
+   conda activate MatchTime \n
    '''
    
    4. Verify that the file directory matches what is presented below as part of original MatchTime
